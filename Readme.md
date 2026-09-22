@@ -2,10 +2,10 @@
 Finally your computer agent that does everything for you without you having to think about it. you ask, and it does **IN THE RIGHT WAY**.
 
 ## What does it include?
+- **AI layer** — natural language interface on top
+- Controller - controls your device by clicking, typing and watching
 - Tracker — watches your system, logs every change
 - Executor — undoes changes cleanly and completely
-- AI layer — natural language interface on top
-- Controller - controls your device by clicking, typing and watching
 
 ## How does it work?
 - While it contains AI, Tracker and an Executor, this will have the ability to do something like this:
@@ -26,5 +26,41 @@ You ask:
 > create an Intellenix account for me
 And it'll open app/browser and process the request by interacting from your device
 
-## Docs
-cargo install cargo-watch
+## Guide
+
+Prerequisites:
+
+- An Apple Silicon Mac (M1 or newer); the current setup has been tested on an M3 with 24 GB RAM.
+- Python 3.12 and Git (to clone the repository).
+- Internet access for installing dependencies and downloading the model.
+- About 7 GB for the model and Python environment, plus extra space during installation.
+- VS Code with the Python extension.
+
+Run these commands from the project root. Rust and Cargo are not required.
+
+### Initialize
+
+```bash
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -r ground/dep.txt
+```
+
+In VS Code, install the Python extension, then press **⌘⇧P → Python: Select Interpreter** and choose `.venv/bin/python`.
+
+Activate the environment in each new terminal to use `python` directly:
+
+```bash
+source .venv/bin/activate
+```
+
+Download the model separately, from the project directory:
+
+```bash
+HF_HOME="$PWD/.cache/huggingface" .venv/bin/hf download jonahmr1/UI-Venus-2-9B-mlx-4bit
+```
+
+### Test
+
+```bash
+python ground/main.py "/path/to/screenshot.png" "click the ..."
+```
