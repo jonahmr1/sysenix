@@ -1,3 +1,6 @@
-target
-.env*
+/.venv/
+/.cache/
+/backups/
+__pycache__/
 .DS_Store
+.env*
