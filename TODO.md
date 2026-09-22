@@ -1,3 +1,3 @@
-- [x] Synced SBI app icon with theme mode
+- ~~[x] Synced SBI app icon with theme mode~~
 - [ ] chat history
 - [ ] multi-step thinking
