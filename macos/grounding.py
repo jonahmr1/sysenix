@@ -1,4 +1,5 @@
 import contextlib
+from functools import cache
 import hashlib
 import json
 import os
@@ -49,6 +50,14 @@ def compatible_model_path(source):
 	return destination
 
 
+@cache
+def load_model():
+	with contextlib.redirect_stdout(sys.stderr):
+		from mlx_vlm import load
+		from mlx_vlm.utils import get_model_path
+		return load(str(compatible_model_path(get_model_path(MODEL))))
+
+
 def locate(path, instruction):
 	instruction = instruction.strip().removesuffix(".")
 	if not instruction:
@@ -58,11 +67,10 @@ def locate(path, instruction):
 
 		with Image.open(path) as source:
 			image = source.convert("RGB")
-		from mlx_vlm import generate, load
+		from mlx_vlm import generate
 		from mlx_vlm.prompt_utils import apply_chat_template
-		from mlx_vlm.utils import get_model_path
 
-		model, processor = load(str(compatible_model_path(get_model_path(MODEL))))
+		model, processor = load_model()
 		prompt = apply_chat_template(
 			processor, model.config, PROMPT.format(instruction=instruction),
 			num_images=1, enable_thinking=False,

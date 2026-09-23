@@ -1,4 +1,5 @@
 import contextlib
+from functools import cache
 import json
 import os
 from pathlib import Path
@@ -46,19 +47,26 @@ Request: {instruction}
 """
 
 
+@cache
+def load_model():
+	with contextlib.redirect_stdout(sys.stderr):
+		from mlx_vlm import load
+		return load(MODEL)
+
+
 def reason(path, instruction):
 	instruction = instruction.strip()
 	if not instruction:
 		raise ValueError("Instruction must not be empty")
 	with contextlib.redirect_stdout(sys.stderr):
 		from PIL import Image
-		from mlx_vlm import generate, load
+		from mlx_vlm import generate
 		from mlx_vlm.prompt_utils import apply_chat_template
 
 		with Image.open(path) as source:
 			image = source.convert("RGB")
 		image.thumbnail((1536, 1536))
-		model, processor = load(MODEL)
+		model, processor = load_model()
 		prompt = apply_chat_template(
 			processor,
 			model.config,
