@@ -25,14 +25,15 @@ pub fn new(input: &str) -> Result<()> {
   let path = temporary.path().join("screen.png");
   let mut models = ai::Models::start(root)?;
   loop {
+    info("Taking a screenshot ...");
     let screen = screenshot::capture(&path)?;
-    info("Reasoning with Qwen…");
+    info("Reasoning ...");
     let Some(target) = models.reason(&screen.path, input)? else {
       info("Reasoning returned null. Stopping.");
       return Ok(());
     };
     info(format_args!("Target: {target}"));
-    info("Grounding with Venus…");
+    info("Grounding ...");
     let point = models.ground(&screen.path, &target)?;
     info(format_args!(
       "Click image coordinates ({}, {})…",
