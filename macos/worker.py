@@ -9,9 +9,18 @@ def reply(value):
 	print(json.dumps(value), flush=True)
 
 
+def loading(name):
+	message = f"[sysenix] Loading {name}…"
+	if sys.stderr.isatty():
+		message = f"\x1b[36m{message}\x1b[0m"
+	print(message, file=sys.stderr, flush=True)
+
+
 def main():
 	try:
+		loading("Qwen (reasoning)")
 		reasoning.load_model()
+		loading("Venus (grounding)")
 		grounding.load_model()
 	except Exception as error:
 		reply({"error": str(error)})
