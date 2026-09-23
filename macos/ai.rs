@@ -19,7 +19,7 @@ pub fn reason(root: &Path, image: &Path, input: &str) -> Result<Option<String>> 
 }
 
 pub fn ground(root: &Path, image: &Path, target: &str) -> Result<Point> {
-  infer(root, image, target, include_str!("grounding.py"), "ground")
+  infer(root, image, target, include_str!("grounding.py"), "locate")
 }
 
 fn infer<T: DeserializeOwned>(
