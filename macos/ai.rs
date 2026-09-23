@@ -4,7 +4,7 @@ use serde_json::{Value, json};
 use std::{
   io::{BufRead, BufReader, Write},
   path::Path,
-  process::{Child, ChildStdin, ChildStdout, Command, Stdio},
+  process::{Child, ChildStdout, Command, Stdio},
 };
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
@@ -18,7 +18,6 @@ pub struct Point {
 
 pub struct Models {
   child: Child,
-  input: ChildStdin,
   output: BufReader<ChildStdout>,
 }
 
@@ -48,7 +47,6 @@ impl Models {
     .stderr(Stdio::inherit())
     .spawn()?;
     let mut models = Self {
-      input: child.stdin.take().expect("piped stdin"),
       output: BufReader::new(child.stdout.take().expect("piped stdout")),
       child,
     };
@@ -74,8 +72,13 @@ impl Models {
     input: &str,
   ) -> Result<T> {
     let request = json!({"operation": operation, "image": image, "instruction": input});
-    writeln!(self.input, "{request}")?;
-    self.input.flush()?;
+    let input = self
+      .child
+      .stdin
+      .as_mut()
+      .ok_or("Model worker input is closed")?;
+    writeln!(input, "{request}")?;
+    input.flush()?;
     let response = self.read()?;
     let result = response.get("result").ok_or("Missing model result")?;
     Ok(serde_json::from_value(result.clone())?)
@@ -96,7 +99,7 @@ impl Models {
 
 impl Drop for Models {
   fn drop(&mut self) {
-    let _ = self.child.kill();
+    drop(self.child.stdin.take());
     let _ = self.child.wait();
   }
 }
