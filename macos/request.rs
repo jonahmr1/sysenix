@@ -5,7 +5,10 @@ use crate::{
   log::info,
   screenshot,
 };
-use std::{env, thread, time::Duration};
+use std::{
+  env, thread,
+  time::{Duration, Instant},
+};
 
 pub fn new(input: &str) -> Result<()> {
   let input = input.trim();
@@ -28,13 +31,25 @@ pub fn new(input: &str) -> Result<()> {
     info("Taking a screenshot ...");
     let screen = screenshot::capture(&path)?;
     info("Reasoning ...");
-    let Some(target) = models.reason(&screen.path, input)? else {
+    let start = Instant::now();
+    let result = models.reason(&screen.path, input);
+    info(format_args!(
+      "Reasoning took {:.2}s",
+      start.elapsed().as_secs_f64()
+    ));
+    let Some(target) = result? else {
       info("Reasoning returned null. Stopping.");
       return Ok(());
     };
     info(format_args!("Target: {target}"));
     info("Grounding ...");
-    let point = models.ground(&screen.path, &target)?;
+    let start = Instant::now();
+    let result = models.ground(&screen.path, &target);
+    info(format_args!(
+      "Grounding took {:.2}s",
+      start.elapsed().as_secs_f64()
+    ));
+    let point = result?;
     info(format_args!(
       "Click image coordinates ({}, {})…",
       point.x, point.y
