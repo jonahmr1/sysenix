@@ -23,16 +23,17 @@ pub fn new(input: &str) -> Result<()> {
     .unwrap_or(directory);
   let temporary = tempfile::tempdir()?;
   let path = temporary.path().join("screen.png");
+  let mut models = ai::Models::start(root)?;
   loop {
     let screen = screenshot::capture(&path)?;
     info("Reasoning with Qwen…");
-    let Some(target) = ai::reason(root, &screen.path, input)? else {
+    let Some(target) = models.reason(&screen.path, input)? else {
       info("Reasoning returned null. Stopping.");
       return Ok(());
     };
     info(format_args!("Target: {target}"));
     info("Grounding with Venus…");
-    let point = ai::ground(root, &screen.path, &target)?;
+    let point = models.ground(&screen.path, &target)?;
     info(format_args!(
       "Click image coordinates ({}, {})…",
       point.x, point.y

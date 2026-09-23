@@ -1,8 +1,10 @@
-use crate::constants::PYTHON_PATH;
+use crate::{constants::PYTHON_PATH, log::info};
 use serde::{Deserialize, de::DeserializeOwned};
+use serde_json::{Value, json};
 use std::{
+  io::{BufRead, BufReader, Write},
   path::Path,
-  process::{Command, Stdio},
+  process::{Child, ChildStdin, ChildStdout, Command, Stdio},
 };
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
@@ -14,39 +16,87 @@ pub struct Point {
   pub y: u32,
 }
 
-pub fn reason(root: &Path, image: &Path, input: &str) -> Result<Option<String>> {
-  infer(root, image, input, include_str!("reasoning.py"), "reason")
+pub struct Models {
+  child: Child,
+  input: ChildStdin,
+  output: BufReader<ChildStdout>,
 }
 
-pub fn ground(root: &Path, image: &Path, target: &str) -> Result<Point> {
-  infer(root, image, target, include_str!("grounding.py"), "locate")
-}
-
-fn infer<T: DeserializeOwned>(
-  root: &Path,
-  image: &Path,
-  input: &str,
-  source: &str,
-  function: &str,
-) -> Result<T> {
-  let root = root.canonicalize()?;
-  let python = root.join(PYTHON_PATH);
-  let output = Command::new(if python.is_file() { python.into_os_string() } else { "python3.12".into() })
-    .arg("-c")
-    .arg(format!("{source}\ntry:\n print(json.dumps({function}(sys.argv[1], sys.argv[2])))\nexcept Exception as error:\n sys.exit(str(error))\n"))
-    .arg(image)
-    .arg(input)
-    .env("SYSENIX_ROOT", root)
-    .stderr(Stdio::piped())
-    .output()?;
-  if !output.status.success() {
-    return Err(
-      format!(
-        "Model inference failed: {}",
-        String::from_utf8_lossy(&output.stderr).trim()
-      )
-      .into(),
+impl Models {
+  pub fn start(root: &Path) -> Result<Self> {
+    let root = root.canonicalize()?;
+    let python = root.join(PYTHON_PATH);
+    // Separate module namespaces keep each model's settings and cache independent.
+    let modules = json!({
+      "reasoning": include_str!("reasoning.py"),
+      "grounding": include_str!("grounding.py"),
+    });
+    let worker = serde_json::to_string(include_str!("worker.py"))?;
+    let source = format!(
+      "import sys, types\nfor name, source in {modules}.items():\n module = types.ModuleType(name)\n sys.modules[name] = module\n exec(source, module.__dict__)\nexec({worker})\n"
     );
+    info("Loading models…");
+    let mut child = Command::new(if python.is_file() {
+      python.into_os_string()
+    } else {
+      "python3.12".into()
+    })
+    .args(["-u", "-c", &source])
+    .env("SYSENIX_ROOT", root)
+    .stdin(Stdio::piped())
+    .stdout(Stdio::piped())
+    .stderr(Stdio::inherit())
+    .spawn()?;
+    let mut models = Self {
+      input: child.stdin.take().expect("piped stdin"),
+      output: BufReader::new(child.stdout.take().expect("piped stdout")),
+      child,
+    };
+    if models.read()?["ready"] != true {
+      return Err("Model worker did not signal readiness.".into());
+    }
+    info("Models ready.");
+    Ok(models)
   }
-  Ok(serde_json::from_slice(&output.stdout)?)
+
+  pub fn reason(&mut self, image: &Path, input: &str) -> Result<Option<String>> {
+    self.infer("reason", image, input)
+  }
+
+  pub fn ground(&mut self, image: &Path, target: &str) -> Result<Point> {
+    self.infer("ground", image, target)
+  }
+
+  fn infer<T: DeserializeOwned>(
+    &mut self,
+    operation: &str,
+    image: &Path,
+    input: &str,
+  ) -> Result<T> {
+    let request = json!({"operation": operation, "image": image, "instruction": input});
+    writeln!(self.input, "{request}")?;
+    self.input.flush()?;
+    let response = self.read()?;
+    let result = response.get("result").ok_or("Missing model result")?;
+    Ok(serde_json::from_value(result.clone())?)
+  }
+
+  fn read(&mut self) -> Result<Value> {
+    let mut line = String::new();
+    if self.output.read_line(&mut line)? == 0 {
+      return Err("Model worker exited unexpectedly; see its stderr output.".into());
+    }
+    let response: Value = serde_json::from_str(&line)?;
+    if let Some(error) = response.get("error") {
+      return Err(format!("Model inference failed: {error}").into());
+    }
+    Ok(response)
+  }
+}
+
+impl Drop for Models {
+  fn drop(&mut self) {
+    let _ = self.child.kill();
+    let _ = self.child.wait();
+  }
 }
