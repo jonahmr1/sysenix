@@ -65,7 +65,6 @@ def reason(path, instruction):
 
 		with Image.open(path) as source:
 			image = source.convert("RGB")
-		image.thumbnail((1536, 1536))
 		model, processor = load_model()
 		prompt = apply_chat_template(
 			processor,
