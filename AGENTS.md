@@ -1,0 +1,2 @@
+- Always ask before you update codes
+- Dont ever add things I didnt ask for
