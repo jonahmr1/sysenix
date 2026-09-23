@@ -1,3 +1,7 @@
 - ~~[x] Synced SBI app icon with theme mode~~
 - [ ] chat history
 - [ ] multi-step thinking
+- [ ] SBI toggle shortcut
+- [ ] popup animation
+- [ ] wrap popup's input when text is too long into new line
+- [ ] voice mode
