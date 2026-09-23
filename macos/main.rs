@@ -6,7 +6,7 @@ fn main() -> ExitCode {
   match cli::run() {
     Ok(()) => ExitCode::SUCCESS,
     Err(error) => {
-      eprintln!("Sysenix failed: {error}");
+      sysenix::log::info(format_args!("Failed: {error}"));
       ExitCode::FAILURE
     }
   }
