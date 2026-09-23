@@ -18,9 +18,9 @@ def loading(name):
 
 def main():
 	try:
-		loading("Qwen (reasoning)")
+		loading("reasoning model")
 		reasoning.load_model()
-		loading("Venus (grounding)")
+		loading("grounding model")
 		grounding.load_model()
 	except Exception as error:
 		reply({"error": str(error)})

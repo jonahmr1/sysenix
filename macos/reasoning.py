@@ -8,7 +8,7 @@ import sys
 os.environ.setdefault(
 	"HF_HOME", str(Path(os.environ["SYSENIX_ROOT"]) / ".cache/huggingface")
 )
-MODEL = "mlx-community/Qwen3.5-9B-4bit"
+MODEL = "mlx-community/EvoCUA-8B-20260105-8bit"
 PROMPT = """Evaluate the user's desktop request against the CURRENT screenshot.
 On every call, including the first, make these checks IN ORDER before choosing a target:
 1. Is the requested end state already visibly satisfied? If yes, return null.
