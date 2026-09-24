@@ -1,32 +1,22 @@
 use crate::{
-  ai::{self, Result},
+  ai::{Models, Result},
   click,
-  constants::PYTHON_PATH,
   log::info,
   screenshot,
 };
 use std::{
-  env, thread,
+  thread,
   time::{Duration, Instant},
 };
 
-pub fn new(input: &str) -> Result<()> {
+pub fn new(models: &mut Models, input: &str) -> Result<()> {
   let input = input.trim();
   if input.is_empty() {
     return Err("Instruction must not be empty.".into());
   }
   info(format_args!("Request: {input}"));
-  let executable = env::current_exe()?;
-  let directory = executable
-    .parent()
-    .ok_or("Cannot find executable directory")?;
-  let root = directory
-    .ancestors()
-    .find(|path| path.join(PYTHON_PATH).is_file())
-    .unwrap_or(directory);
   let temporary = tempfile::tempdir()?;
   let path = temporary.path().join("screen.png");
-  let mut models = ai::Models::start(root)?;
   loop {
     info("Taking a screenshot ...");
     let screen = screenshot::capture(&path)?;

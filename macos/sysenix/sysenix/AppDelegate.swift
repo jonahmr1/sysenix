@@ -10,10 +10,12 @@ import AppKit
 
   @MainActor
   class AppDelegate: NSObject, NSApplicationDelegate {
+      static let requests = DispatchQueue(label: "sysenix.requests", qos: .userInitiated)
       private var statusItem: NSStatusItem!
       private let panel = FloatingPanel()
 
       func applicationDidFinishLaunching(_ notification: Notification) {
+          Self.requests.async { sysenix_start() }
           NSApp.setActivationPolicy(.accessory)
 
           statusItem = NSStatusBar.system.statusItem(

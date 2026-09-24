@@ -244,7 +244,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3QY423A62X;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -255,6 +255,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = ("$(inherited)", "$(SRCROOT)/../target/debug/libsysenix.a", "-framework", CoreGraphics, "-framework", ApplicationServices, "-framework", CoreFoundation, "-liconv");
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/sysenix/RustBridge.h";
 				PRODUCT_BUNDLE_IDENTIFIER = lenix.sysenix;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -276,7 +278,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3QY423A62X;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -287,6 +289,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = ("$(inherited)", "$(SRCROOT)/../target/debug/libsysenix.a", "-framework", CoreGraphics, "-framework", ApplicationServices, "-framework", CoreFoundation, "-liconv");
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/sysenix/RustBridge.h";
 				PRODUCT_BUNDLE_IDENTIFIER = lenix.sysenix;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;

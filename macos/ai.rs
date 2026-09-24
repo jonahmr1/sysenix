@@ -2,6 +2,7 @@ use crate::{constants::PYTHON_PATH, log::info};
 use serde::{Deserialize, de::DeserializeOwned};
 use serde_json::{Value, json};
 use std::{
+  env,
   io::{BufRead, BufReader, Write},
   path::Path,
   process::{Child, ChildStdout, Command, Stdio},
@@ -22,7 +23,16 @@ pub struct Models {
 }
 
 impl Models {
-  pub fn start(root: &Path) -> Result<Self> {
+  pub fn start() -> Result<Self> {
+    let executable = env::current_exe()?;
+    let directory = executable
+      .parent()
+      .ok_or("Cannot find executable directory")?;
+    let root = directory
+      .ancestors()
+      .find(|path| path.join(PYTHON_PATH).is_file())
+      // Xcode runs from DerivedData, outside the development repository.
+      .unwrap_or(Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap());
     let root = root.canonicalize()?;
     let python = root.join(PYTHON_PATH);
     // Separate module namespaces keep each model's settings and cache independent.

@@ -1,7 +1,6 @@
 use std::{env, path::Path};
 use sysenix::{
   ai::{self, Result},
-  constants::PYTHON_PATH,
   request,
 };
 
@@ -16,15 +15,7 @@ pub fn run() -> Result<()> {
   }
   if args.len() == 3 && args[0] == "reason" {
     let input = args[2].to_str().ok_or("Instruction must be valid UTF-8")?;
-    let executable = env::current_exe()?;
-    let directory = executable
-      .parent()
-      .ok_or("Cannot find executable directory")?;
-    let root = directory
-      .ancestors()
-      .find(|path| path.join(PYTHON_PATH).is_file())
-      .unwrap_or(directory);
-    let mut models = ai::Models::start(root)?;
+    let mut models = ai::Models::start()?;
     let target = models.reason(Path::new(&args[1]), input)?;
     println!("{}", serde_json::to_string(&target)?);
     return Ok(());
@@ -32,5 +23,6 @@ pub fn run() -> Result<()> {
   if args.len() != 1 {
     return Err(USAGE.into());
   }
-  request::new(args[0].to_str().ok_or("Instruction must be valid UTF-8")?)
+  let input = args[0].to_str().ok_or("Instruction must be valid UTF-8")?;
+  request::new(&mut ai::Models::start()?, input)
 }

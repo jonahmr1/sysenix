@@ -23,6 +23,12 @@ struct ContentView: View {
 				in: RoundedRectangle(cornerRadius: 20)
 			)
 			.onAppear { focused = true }
+			.onSubmit {
+				let request = input
+				AppDelegate.requests.async {
+					request.withCString { sysenix_request($0) }
+				}
+			}
 	}
 }
 

@@ -5,6 +5,7 @@ edition = "2024"
 
 [lib]
 path = "lib.rs"
+crate-type = ["rlib", "staticlib"]
 
 [[bin]]
 name = "sysenix"
