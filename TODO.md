@@ -5,3 +5,4 @@
 - [ ] popup animation
 - [ ] wrap popup's input when text is too long into new line
 - [ ] voice mode
+- [ ] increase grounding and reasoning's response speed
